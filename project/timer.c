@@ -2,74 +2,70 @@
 #include "timer.h"
 #include "lcd.h"
 
-extern bool isTimerOn;
-extern bool isRunning;
 /*
  * Uart를 통한 사용자 입력
  * 원래는 문자열 -> 숫자 변환 
  */
-int user_input;
-
-/*
- * 사용자 입력값 처리를 위한 변수 
- */
-int temp_input; // == user_input
-
+int userTimeInput;
 
 /*
  * CTC count값 
  */
-int ctc_cnt;
-int ls_cnt;
+int timerCnt; // CTC 방식
+int lsCnt;   // Light Sensor
 
 /* FND 처리 */
 /*
  * Segment 1개의 숫자 표현을 위한 데이터셋  
  */
 unsigned char num_data[] = {0xc0, 0xf9, 0xa4, 0xb0, 0x99, 0x92, 0x82, 0xd8, 0x80, 0x90}; // 7-segment의 숫자 0~9까지 표현
-/*
+/*p
  * FND 자리 변경
  */
 unsigned int Port_fnd[] = {0x1f, 0x2f, 0x4f, 0x8f}; // PORTE.4 5 6 7 전환 
 
-void FND_disp()
+void fnd_disp()
 {
     /*
-     * PORTE 0123 다른 용도 사용하기 위해 &사용 
+     * PORTE 0123 다른 용도 사용하기 위해 &사용  B -> C test
      */
-     PORTE = Port_fnd[3]; PORTB = num_data[user_input/1000%10]; _delay_us(1000); PORTB=0xff;
-     PORTE = Port_fnd[2]; PORTB = num_data[user_input/100%10];  _delay_us(1000); PORTB=0xff;
-     PORTE = Port_fnd[1]; PORTB = num_data[user_input/10%10];   _delay_us(1000); PORTB=0xff;
-     PORTE = Port_fnd[0]; PORTB = num_data[user_input/1%10];    _delay_us(1000); PORTB=0xff;    
+     PORTE = Port_fnd[3]; PORTC = num_data[userTimeInput/1000%10]; _delay_us(1000); PORTC=0xff;
+     PORTE = Port_fnd[2]; PORTC = num_data[userTimeInput/100%10];  _delay_us(1000); PORTC=0xff;
+     PORTE = Port_fnd[1]; PORTC = num_data[userTimeInput/10%10];   _delay_us(1000); PORTC=0xff;
+     PORTE = Port_fnd[0]; PORTC = num_data[userTimeInput/1%10];    _delay_us(1000); PORTC=0xff;    
 }
 
-//interrupt [TIM2_COMP] void timer2_out_comp(void)
 ISR(TIMER2_COMP_vect)
 {       
-    ctc_cnt++; 
-    ls_cnt++;
-    if(ls_cnt == 4001){
-        ls_cnt = 0;                
+    timerCnt++; 
+    lsCnt++;
+	
+    if(lsCnt == 4001){ 
+        lsCnt = 0;                
     }
     
-    if(ctc_cnt == 20000) // 1초 
+    if(timerCnt == 20000) // 1초 
     {     
-        ctc_cnt = 0;
-        user_input--;
-        if(user_input == 0)
+        timerCnt = 0;
+        userTimeInput--;
+        if(userTimeInput == 0)
         {
             isTimerOn = false;
             isRunning = false;
-            PORTE = 0x00;
-            dispSome("Timer is Done","",5000);  
+			isTimerDone = true;
+			// To Change LED ON
+            PORTD |= 0x80;
+			PORTE = 0x00;
+			lcdUserInputError = 5;
+			disp_some("Timer is Done","",3000);
         }
-        if(user_input%100 == 99){
-            user_input -= 40;
+        if(userTimeInput%100 == 99){
+            userTimeInput -= 40;
         }        
     }             
 }
 
-void Init_Timer2(void)
+void init_timer_Timer2(void)
 {
     TCCR2 = 0x00;           // 초기화 
     TCCR2 |= (1 << WGM21) | (1 << COM20);   // CTC 모드
@@ -78,16 +74,32 @@ void Init_Timer2(void)
     TIMSK = 1<<OCIE2;       // 출력비교 인터럽트 허가
 }
 
-void var_Init(){
-    ctc_cnt = 0;
-    ls_cnt = 0;
+void init_motor_Timer1(void)
+{
+	// 고속 PWM , TOP = ICR1;, 64분주
+	TCCR1A |=  (1<<COM1A1) | (0<<COM1A0) | (1<<WGM11);
+	TCCR1B |= (1<<WGM13) | (1<<WGM12) | (1<<CS11) | (1<<CS10);
+	ICR1=4999;     //TOP
+	OCR1A=375;     //0도
 }
 
-void Init_TimerINT(void)
+void emergency_motor_degree(){
+	OCR1A=500;     //90도
+}
+
+void end_emergency(){
+	OCR1A=250;     //-90도
+}
+
+void var_Init(){
+	timerCnt = 0;
+	lsCnt = 0;
+}
+
+void init_Timer(void)
 {
-    DDRB = 0xff;
-    DDRE = 0xf0;
-    Init_Timer2();
-    var_Init();
-    sei();
+	var_Init();
+	init_timer_Timer2();
+	init_motor_Timer1();	
+	//sei();
 }

@@ -15,15 +15,14 @@ unsigned int Read_ADC_data(unsigned char adc_input)
     
     ADMUX &= ~(0x1F);
     ADMUX |= (adc_input & 0x07);
-    
     ADCSRA |= (1<<ADSC);
     while(!(ADCSRA & (1<<ADIF)));
     adc_Data = ADCL;
     adc_Data |= ADCH << 8;
     
-    return adc_Data;
-    
+    return adc_Data; 
 }
+
 
 unsigned int Read_ADC_Data_Diff(unsigned char adc_mux)
 {
@@ -42,4 +41,14 @@ unsigned int Read_ADC_Data_Diff(unsigned char adc_mux)
     ADC_Data |= ADCH << 8;
     
     return ADC_Data;    
+}
+
+float light_parsing(float adcVoltage){
+	return -0.0354 * pow(adcVoltage,6)
+	+0.5534 * pow(adcVoltage,5)
+	-3.3318 * pow(adcVoltage,4)
+	+9.7896 * pow(adcVoltage,3)
+	-14.712 * pow(adcVoltage,2)
+	+12 * adcVoltage
+	- 0.2201;
 }

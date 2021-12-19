@@ -4,7 +4,6 @@
  * Created: 2021-11-27 오후 3:55:39
  * Author: sypark
  */
-
 #include "header.h"
 #include "uart.h"
 #include "timer.h"
@@ -16,106 +15,106 @@
 /*
  * 전체 동작 제어를 위한 변수
  */
-
 bool isAllSensorLock = false;
 bool isTimerOn = false;
 bool isRunning = false;
+bool isTimerDone = false;
+bool isEmergency = false;
+int lcdUserInputError = 0;
 
 /*
- * 조도 200ms trig
+ * LCD 출력
  */
-extern int ls_cnt;
+unsigned char Hello[] = "Hello MP2 TP";
+unsigned char madeBy[] = "With PSY & LWG";
 
-void Init_port(){
-    DDRD = 0xFF;     
-    PORTD = 0x00;           
+void init_port(){
+	/*
+	 * PORTA & G : LCD
+	 */
+	DDRA = 0xff;
+	DDRG = 0x0f;
+	/*
+	 * PD.7 : LED
+	 */
+    DDRD = 0x80;     
+		  
+	DDRB = 0xff; // 모터               : PB5
+	DDRC = 0xff; // Timer2(FND Data)  : PB0~7 
+	DDRE = 0xf0; // FND(LCD 출력)     : PE 4567 전환      
+	
+	/*
+	 * PF1 : 조도
+	 * PF2 : 온도용 GND
+	 * PF3 : 온도용 Input, vcc
+	 */
+	PORTD = 0x00;
 }
 
 void init_all(){
-    Init_USART1();
-    Init_TimerINT();
-    Init_port();
-    Init_Lcd();
+	init_port();
+    Init_USART0();
+	Init_USART1();
+    init_Timer();
+    init_lcd();
     Init_adc();
 }
 
-void main_display(char* Hello, char* made){
-    LCD_Pos(0,0);
-    LCD_Str(Hello);
-    LCD_Pos(1,0);
-    LCD_Str(made);
+void lcd_user_input_error(){
+	switch(lcdUserInputError){
+		//case 0 : break; 
+		case 1: disp_some("timer Overflow","",1000); break;
+		case 2: disp_some("ALL Sensor", "is Locked", 8000); break;
+		case 3: disp_some("Packet input", "is Locked", 8000); break;
+		case 4: disp_some("Timer is ","interrupted",3000); break;
+		case 5: disp_some("Timer is Done","",3000); break;
+	}
+	lcdUserInputError = 0;
 }
-
-float light_parsing(float adcVoltage){
-    return -0.0354 * pow(adcVoltage,6)
-                     +0.5534 * pow(adcVoltage,5)
-                     -3.3318 * pow(adcVoltage,4)
-                     +9.7896 * pow(adcVoltage,3)
-                     -14.712 * pow(adcVoltage,2)
-                     +12 * adcVoltage
-                     - 0.2201;
-}
-
 
 int main()
 {
-    unsigned char Hello[] = "Hello MP2 TP";
-    unsigned char madeBy[] = "With PSY & LWG";
-    unsigned char index = 0x00;
-    
-    /*
-     *  조도센서 
-     */
-    int res=0;
-    int adcRaw=0;
-    float adcVoltage = 0;
-    float light_Step;
-    
-    float adcmilliVoltage = 0;
-    char message[50];
-    char message2[50];
-    
+	int emergency =0;
     init_all(); 
-    
     /*
      * 초기 화면 설정, 3초후 화면 지움 
      */
-    main_display(Hello, madeBy); 
-    LCD_delay(3000);
-    LCD_Clear();
-    
+    disp_some(Hello, madeBy,3000); 
+
     while(1){
-        if(!isAllSensorLock){  
-            // SensorOn
-            if(isTimerOn){
-                FND_disp();            
-            }
-            else{
-                // 나머지 센서 동작
-                if(ls_cnt % 4000 == 0){
-                    adcRaw = Read_ADC_data(1);
-                    adcVoltage = ((((float)(adcRaw + 1) * 5) / 1024));
-                    light_Step = light_parsing(adcVoltage);
-                
-                    if(adcVoltage < 3)
-                    {
-                        PORTD = 0xff;
-                    }                
-                    else
-                    {
-                        PORTD = 0x00;
-                    }
-                
-                    sprintf(message, "RawData : %4d " ,adcRaw);
-                    sprintf(message2, " %04d V, %02d ", (int)adcVoltage * 1000, (int)(light_Step * 10+4)/10);
-                    dispSome(message, message2, 0); 
-                }
-            }
-        }
-        else {
-            // 현재상태 : 센서 OFF
-			
-        } 
+		/*
+		if(isEmergency){
+			dispSome("Emergency NOW", "HURRY UP", 0);
+			continue;
+		}
+		
+		if(ky() <3){
+			emergency_motor_degree();
+			isEmergency = true;
+		}
+		*/
+		if(!isAllSensorLock){
+			// SensorOn
+			if(isRunning){
+				fnd_disp();
+			}
+			else{
+				// 나머지 센서 동작
+				if(lsCnt % 4000 == 0){
+					if(isTimerDone){ // Timer로 인한 기상
+						// 온도
+						lm35();
+					} 
+					else{ // Timer로인한 기상 X
+						ls();
+					}
+				}
+			}
+		}
+		else {
+			// 현재상태 : 센서 OFF
+			PORTD = 0x00;
+		}	
     }  
 	return 0;  
 }

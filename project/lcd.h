@@ -8,21 +8,14 @@
 #define LCD_RW      1 // 읽기 :1, 쓰기 : 0
 #define LCD_RS      2 // 데이터 :1, 명령어 :0
 
-
-void Init_lcd_port(void);
-void Init_Lcd(void);
-
-void LCD_Data(unsigned char ch);
-void LCD_Comm(unsigned char ch);
-void LCD_delay(double ms);
-void LCD_CHAR(unsigned char c);
-void LCD_Str(unsigned char *str);
-void LCD_Pos(unsigned char row, unsigned char col);
-void LCD_Clear(void);
-void dispSome(char*, char*, int ms);
-
+void init_lcd(void);
+void lcd_data(unsigned char ch);
+void lcd_comm(unsigned char ch);
+void lcd_delay(double ms);
+void lcd_char(unsigned char c);
+void lcd_str(unsigned char *str);
+void lcd_pos(unsigned char row, unsigned char col);
+void lcd_clear(void);
+void disp_some(char*, char*, int ms);
 
 #endif
-
-
-

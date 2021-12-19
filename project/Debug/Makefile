@@ -38,7 +38,8 @@ SUBDIRS :=
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
 ../lcd.c \
-../ls.c \
+../adc_activate.c \
+../adc.c \
 ../main.c \
 ../timer.c \
 ../uart.c
@@ -52,28 +53,32 @@ ASM_SRCS +=
 
 OBJS +=  \
 lcd.o \
-ls.o \
+adc_activate.o \
+adc.o \
 main.o \
 timer.o \
 uart.o
 
 OBJS_AS_ARGS +=  \
 lcd.o \
-ls.o \
+adc_activate.o \
+adc.o \
 main.o \
 timer.o \
 uart.o
 
 C_DEPS +=  \
 lcd.d \
-ls.d \
+adc_activate.d \
+adc.d \
 main.d \
 timer.d \
 uart.d
 
 C_DEPS_AS_ARGS +=  \
 lcd.d \
-ls.d \
+adc_activate.d \
+adc.d \
 main.d \
 timer.d \
 uart.d
@@ -99,7 +104,14 @@ LINKER_SCRIPT_DEP+=
 	@echo Finished building: $<
 	
 
-./ls.o: .././ls.c
+./adc_activate.o: .././adc_activate.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=14745600  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\gcc\dev\atmega128" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+./adc.o: .././adc.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=14745600  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\gcc\dev\atmega128" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

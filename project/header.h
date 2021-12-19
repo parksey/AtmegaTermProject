@@ -9,8 +9,22 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-void Init_port();
+
 typedef enum{false, true} bool;
+
+
+/*
+ * 전역 공용 변수
+ */
+extern bool isAllSensorLock;
+extern bool isTimerOn;
+extern bool isRunning;
+extern bool isTimerDone;
+extern bool isEmergency;
+extern int lcdUserInputError;
+
+extern unsigned char Hello[];
+extern unsigned char madeBy[];
 
 #endif
 

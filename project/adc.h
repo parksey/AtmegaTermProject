@@ -10,13 +10,13 @@
  * 조도센서 
  */
 void Init_adc(void);
-
 unsigned int Read_ADC_data(unsigned char adc_input);
-
 unsigned int Read_ADC_Data_Diff(unsigned char adc_mux);
+float light_parsing(float adcVoltage);
 
-
-
+void lm35();
+void ls();
+int ky();
 
 #endif
 

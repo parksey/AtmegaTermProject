@@ -1,10 +1,14 @@
 #ifndef __UART_H__
 #define __UART_H__
 
-void sensor_OnOff();
-void timerSet();
-void resStr_reset();
+typedef enum{COM, BT} STATE;
+
+void sensor_onoff(STATE);
+void timer_set(STATE);
+void str_reset(STATE);
 
 void Init_USART1(void);
+void Init_USART0(void);
+
 
 #endif

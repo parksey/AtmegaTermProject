@@ -4,7 +4,9 @@
 
 lcd.c
 
-ls.c
+adc_activate.c
+
+adc.c
 
 main.c
 
