@@ -8,11 +8,14 @@ Microprocessor2 term project
 - Microchip Studio(AVR Studio)
   - 기존 Code Vision을 사용 했으나 프로그램 크기가 커지면서 무료 버전 사용할 수 없어 대신 사용
 - ComPortMaster : UART 통신을 위해 사용
+<br>
 
 ## 동작 시나리오
+![동작](https://user-images.githubusercontent.com/54196094/175772857-f0eaa4ca-982a-431b-bdcd-91ab31a0f31e.png)
+<br>
 
 ## 예외 시나리오
-
+![예외](https://user-images.githubusercontent.com/54196094/175772861-5907c2ed-4b3c-4c69-9190-e0773ed6c041.png)
 <br>
 
 
